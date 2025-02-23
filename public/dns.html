@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>K8s 內部 DNS 測試</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 5px; margin: 5px; }
+    #result { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>K8s 內部 DNS 測試</h1>
+  <input type="text" id="serviceName" placeholder="輸入服務名稱 (e.g., kubernetes)">
+  <input type="number" id="customPort" placeholder="自訂端口 (可選)">
+  <button onclick="testDNS()">測試</button>
+  <div id="result"></div>
+
+  <script>
+    function testDNS() {
+      const serviceName = document.getElementById('serviceName').value;
+      const customPort = document.getElementById('customPort').value;
+      fetch('/dns-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceName, customPort })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const resultDiv = document.getElementById('result');
+          if (data.success) {
+            let resultHTML = `
+              解析成功!<br>
+              地址: ${data.resolvedAddresses.join(', ')}<br>
+              連線結果:<br>
+              - 端口 80: ${data.connectionResults['80'] ? '可連接' : '不可連接'}<br>
+              - 端口 443: ${data.connectionResults['443'] ? '可連接' : '不可連接'}
+            `;
+            if (data.connectionResults[customPort]) {
+              resultHTML += `<br>- 端口 ${customPort}: ${data.connectionResults[customPort] ? '可連接' : '不可連接'}`;
+            }
+            resultDiv.innerHTML = resultHTML;
+          } else {
+            resultDiv.innerHTML = `失敗: ${data.error} - ${data.details}`;
+          }
+        })
+        .catch(err => console.error('錯誤:', err));
+    }
+  </script>
+</body>
+</html>
