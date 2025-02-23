@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: k8s-monitor
-        image: foun1224/k8s-monitor:latest
+        image: foun1224/k8s-monitor
         ports:
         - containerPort: 3000
         env:
